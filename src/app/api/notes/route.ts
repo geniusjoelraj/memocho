@@ -26,6 +26,7 @@ export async function POST(req: Request) {
 
   const note = await prisma.note.create({
     data: {
+      id: body.id,
       title: body.title,
       content: body.content || ""
     }
