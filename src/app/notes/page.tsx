@@ -1,6 +1,5 @@
 'use client'
 import { Masonry } from '@mui/lab';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Note } from '@/generated/prisma/browser';
 import { toast } from "sonner";
@@ -27,7 +26,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -37,8 +35,8 @@ import {
 export default function Notes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [reload, setReload] = useState(1);
-  const [id, setId] = useState<number | null>(null);
   const [selected, setSelected] = useState(0);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     fetch("/api/notes")
@@ -69,7 +67,7 @@ export default function Notes() {
     await fetch(`/api/notes?id=${note.id}`, { method: "DELETE" });
 
     // Show toast with Undo
-    const t = toast("Note deleted", {
+    toast("Note deleted", {
       action: {
         label: "Undo",
         onClick: async () => {
@@ -102,7 +100,7 @@ export default function Notes() {
     const title = formData.get("title") as string;
     const id = formData.get("id") as string;
     const content = formData.get("content") as string;
-    const res = await fetch(`/api/notes?id=${id}`, {
+    await fetch(`/api/notes?id=${id}`, {
       method: "PUT",
       body: JSON.stringify({ title: title, content: content }),
       headers: { "Content-Type": "application/json" }
@@ -112,11 +110,23 @@ export default function Notes() {
     toast.success("Note edited successfully");
   }
 
+  async function edit_tags(note: Note) {
+    setGenerating(true);
+    await fetch("/api/notes", {
+      method: "PATCH",
+      body: JSON.stringify(note),
+      headers: { "Content-Type": "application/json" }
+    })
+    setGenerating(false);
+    setReload(prev => prev + 1);
+    toast.success("tags generated");
+  }
   return (
     <>
       <h1 className='text-3xl mb-10'>My Notes</h1>
       <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4 }} spacing={2}>
         <Card
+          onClick={() => setSelected(0)}
           className='p-3'
         >
           <form onSubmit={create_note} >
@@ -150,17 +160,30 @@ export default function Notes() {
                   <p className='w-full -mb-4'>{note.content}</p>
                   <div className='flex gap-1 flex-wrap'>
                     {selected == note.id ?
-                      <Badge variant='outline' className='cursor-pointer'>new +</Badge>
+                      <Badge variant='outline' className='cursor-pointer'
+                        onClick={async () => {
+                          edit_tags(note);
+                          setReload(prev => prev + 1);
+                        }}
+                      >new +</Badge>
                       : <></>
                     }
+                    {(generating && selected == note.id) ?
+                      <>
+                        <Skeleton className='w-15 h-5 rounded-2xl'></Skeleton>
+                        <Skeleton className='w-12 h-5 rounded-2xl'></Skeleton>
+                        <Skeleton className='w-13 h-5 rounded-2xl'></Skeleton>
+                      </>
+                      :
+                      <></>}
                     {note.tags.map(tag => {
                       return (<Badge key={tag} variant='secondary' className=''>
                         {tag}
                       </Badge>)
                     })}
                   </div>
-                  {selected == note.id ?
 
+                  {selected == note.id ?
                     <ButtonGroup>
                       {/* <Button */}
                       {/*   className='mr-3' */}
@@ -220,10 +243,6 @@ export default function Notes() {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete your
-                              account and remove your data from our servers.
-                            </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>

@@ -1,74 +1,47 @@
-import { NextResponse } from "next/server";
-import { ChromaClient } from "chromadb";
-import { GoogleGeminiEmbeddingFunction } from "@chroma-core/google-gemini";
+import { NextRequest, NextResponse } from "next/server";
+import { CloudClient, Collection, Metadata } from "chromadb";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-let collection: any = null;
-
-async function getCollection() {
-  if (!collection) {
-    const client = new ChromaClient({ port: 8123 });
-    const embedder = new GoogleGeminiEmbeddingFunction({
-      apiKey: process.env.GEMINI_API_KEY!,
-    });
-
-    collection = await client.getOrCreateCollection({
-      name: "ainotes",
-      embeddingFunction: embedder,
-    });
-  }
-  return collection;
+interface AddDataRequest {
+  ids: string[];
+  documents: string[];
+  metadatas: Metadata[];
 }
 
-// POST request handler
-export async function POST(req: Request) {
+const chromaClient = new CloudClient();
+
+let myCollection: Collection | null = null;
+
+const getMyCollection = async () => {
+  if (!myCollection) {
+    myCollection = await chromaClient.getOrCreateCollection({
+      name: "notes",
+    });
+  }
+  return myCollection;
+};
+
+export async function POST(request: NextRequest) {
   try {
-    const data = await req.json();
+    const data: AddDataRequest = await request.json();
+    const collection = await getMyCollection();
 
-    const collection = await getCollection();
+    await collection.add({
+      ids: data.ids,
+      documents: data.documents,
+      metadatas: data.metadatas,
+    });
 
-    if (data.action === "add") {
-      const { ids, documents, metadatas } = data;
-
-      if (!ids || !documents) {
-        return NextResponse.json(
-          { error: "Missing ids or documents field" },
-          { status: 400 }
-        );
-      }
-
-      await collection.add({ ids, documents, metadatas });
-
-      return NextResponse.json({ message: "Notes added successfully" });
-    }
-
-    if (data.action === "query") {
-      const { queryTexts, nResults = 3 } = data;
-
-      if (!queryTexts) {
-        return NextResponse.json(
-          { error: "Missing queryTexts field" },
-          { status: 400 }
-        );
-      }
-
-      const results = await collection.query({
-        queryTexts,
-        nResults,
-      });
-
-      return NextResponse.json(results);
-    }
-
+    return NextResponse.json({
+      success: true,
+      message: "Data added successfully",
+      data,
+    });
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
-      { error: "Invalid action. Use 'add' or 'query'." },
-      { status: 400 }
+      { success: false, message: "Failed to add data" },
+      { status: 500 },
     );
-  } catch (err: any) {
-    console.error("Chroma API error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 

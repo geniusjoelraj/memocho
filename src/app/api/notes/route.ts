@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma.ts";
+import { get_tags } from "../gen_tags.ts";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -77,4 +78,17 @@ export async function PUT(req: Request) {
   } catch {
     return NextResponse.json({ error: "Note not found" }, { status: 404 });
   }
+}
+
+export async function PATCH(req: Request) {
+  const body = await req.json();
+  const id = Number(body.id);
+  const gen_tags = await get_tags(body)
+  const updated = await prisma.note.update({
+    where: { id },
+    data: {
+      ...(gen_tags && { tags: gen_tags }),
+    }
+  })
+  return NextResponse.json(updated);
 }
