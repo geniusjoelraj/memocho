@@ -124,3 +124,8 @@
 body {
   padding: 20px !important;
 }
+
+.font-logo {
+  font-family: var(--font-logo);
+  font-size: 40px;
+}

@@ -117,6 +117,11 @@ export default function Notes() {
       body: JSON.stringify(note),
       headers: { "Content-Type": "application/json" }
     })
+    await fetch("/api/add", {
+      method: "POST",
+      body: JSON.stringify(note),
+      headers: { "Content-Type": "application/json" }
+    })
     setGenerating(false);
     setReload(prev => prev + 1);
     toast.success("tags generated");
@@ -176,11 +181,12 @@ export default function Notes() {
                       </>
                       :
                       <></>}
-                    {note.tags.map(tag => {
+                    {(!generating) ? note.tags.map(tag => {
                       return (<Badge key={tag} variant='secondary' className=''>
                         {tag}
                       </Badge>)
-                    })}
+                    }) : <></>
+                    }
                   </div>
 
                   {selected == note.id ?

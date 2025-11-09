@@ -1,6 +1,7 @@
-export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
-import { CloudClient, Collection, Metadata } from "chromadb";
+import { Metadata } from "chromadb";
+import { Note } from "@/generated/prisma/client";
+import { getMyCollection } from "@/lib/chroma";
 
 interface AddDataRequest {
   ids: string[];
@@ -8,28 +9,39 @@ interface AddDataRequest {
   metadatas: Metadata[];
 }
 
-const chromaClient = new CloudClient();
+// For bulk uploading notes //
+// function formatNotes(notes: Array<Note>) {
+//   return {
+//     ids: notes.map(note => note.id.toString()),
+//     documents: notes.map(note => `${note.title}\n${note.content}`),
+//     metadatas: notes.map(note => ({
+//       tags: note.tags.join(', '),
+//       createdAt: note.createdAt.toString()
+//     }))
+//   }
+// }
 
-let myCollection: Collection | null = null;
-
-const getMyCollection = async () => {
-  if (!myCollection) {
-    myCollection = await chromaClient.getOrCreateCollection({
-      name: "notes",
-    });
+function formatNote(note: Note) {
+  return {
+    ids: [note.id.toString()],
+    documents: [`${note.title}\n${note.content}`],
+    metadatas: [{
+      tags: note.tags.join(', '),
+      createdAt: note.createdAt.toString()
+    }]
   }
-  return myCollection;
-};
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const data: AddDataRequest = await request.json();
+    const data: Note = await request.json();
+    const note: AddDataRequest = formatNote(data);
     const collection = await getMyCollection();
 
     await collection.add({
-      ids: data.ids,
-      documents: data.documents,
-      metadatas: data.metadatas,
+      ids: note.ids,
+      documents: note.documents,
+      metadatas: note.metadatas,
     });
 
     return NextResponse.json({
@@ -45,4 +57,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 
