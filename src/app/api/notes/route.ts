@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       content: body.content || ""
     }
   })
-  return NextResponse.json(note, { status: 201 })
+  return NextResponse.json({ note }, { status: 201 })
 }
 
 export async function DELETE(req: Request) {

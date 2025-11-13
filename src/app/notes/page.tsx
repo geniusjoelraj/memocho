@@ -38,6 +38,15 @@ export default function Notes() {
   const [selected, setSelected] = useState(0);
   const [generating, setGenerating] = useState(false);
 
+  // useEffect(() => {
+  //   const lenis = new Lenis();
+  //   function raf(time: any) {
+  //     lenis.raf(time);
+  //     requestAnimationFrame(raf);
+  //   }
+  //   requestAnimationFrame(raf);
+  // }, [])
+
   useEffect(() => {
     fetch("/api/notes")
       .then((res) => res.json())
@@ -59,6 +68,9 @@ export default function Notes() {
 
     if (res.ok) toast.success("Note created successfully");
     form.reset();
+    const note = await res.json();
+    setReload(prev => prev + 1);
+    edit_tags(note);
     setReload(prev => prev + 1);
   }
 
