@@ -36,7 +36,7 @@ export default function Notes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [reload, setReload] = useState(1);
   const [selected, setSelected] = useState(0);
-  const [generating, setGenerating] = useState(false);
+  const [generatingIds, setGeneratingIds] = useState<Set<number>>(new Set());
 
   // useEffect(() => {
   //   const lenis = new Lenis();
@@ -50,7 +50,15 @@ export default function Notes() {
   useEffect(() => {
     fetch("/api/notes")
       .then((res) => res.json())
-      .then(setNotes);
+      .then((data) => {
+        setNotes(data);
+        // Trigger generation for notes without tags
+        data.forEach((note: Note) => {
+          if ((!note.tags || note.tags.length === 0) && !generatingIds.has(note.id)) {
+            edit_tags(note);
+          }
+        });
+      });
   }, [reload]);
 
   async function create_note(e: React.FormEvent<HTMLFormElement>) {
@@ -68,10 +76,10 @@ export default function Notes() {
 
     if (res.ok) toast.success("Note created successfully");
     form.reset();
-    const note = await res.json();
+    // const note = await res.json();
     setReload(prev => prev + 1);
-    edit_tags(note);
-    setReload(prev => prev + 1);
+    // edit_tags(note);
+    // setReload(prev => prev + 1);
   }
 
   async function delete_note(note: Note) {
@@ -123,20 +131,28 @@ export default function Notes() {
   }
 
   async function edit_tags(note: Note) {
-    setGenerating(true);
-    await fetch("/api/notes", {
-      method: "PATCH",
-      body: JSON.stringify(note),
-      headers: { "Content-Type": "application/json" }
-    })
-    await fetch("/api/add", {
-      method: "POST",
-      body: JSON.stringify(note),
-      headers: { "Content-Type": "application/json" }
-    })
-    setGenerating(false);
-    setReload(prev => prev + 1);
-    toast.success("tags generated");
+    if (generatingIds.has(note.id)) return;
+    setGeneratingIds(prev => new Set(prev).add(note.id));
+    try {
+      await fetch("/api/notes", {
+        method: "PATCH",
+        body: JSON.stringify(note),
+        headers: { "Content-Type": "application/json" }
+      })
+      await fetch("/api/add", {
+        method: "POST",
+        body: JSON.stringify(note),
+        headers: { "Content-Type": "application/json" }
+      })
+      toast.success("tags generated");
+      setReload(prev => prev + 1);
+    } finally {
+      setGeneratingIds(prev => {
+        const next = new Set(prev);
+        next.delete(note.id);
+        return next;
+      });
+    }
   }
   return (
     <>
@@ -185,7 +201,7 @@ export default function Notes() {
                       >new +</Badge>
                       : <></>
                     }
-                    {(generating && selected == note.id) ?
+                    {(generatingIds.has(note.id)) ?
                       <>
                         <Skeleton className='w-15 h-5 rounded-2xl'></Skeleton>
                         <Skeleton className='w-12 h-5 rounded-2xl'></Skeleton>
@@ -193,7 +209,7 @@ export default function Notes() {
                       </>
                       :
                       <></>}
-                    {(!generating) ? note.tags.map(tag => {
+                    {(!generatingIds.has(note.id)) ? note.tags.map(tag => {
                       return (<Badge key={tag} variant='secondary' className=''>
                         {tag}
                       </Badge>)

@@ -35,6 +35,12 @@ function formatNote(note: Note) {
 export async function POST(request: NextRequest) {
   try {
     const data: Note = await request.json();
+    if (!data || !data.id) {
+      return NextResponse.json(
+        { success: false, message: "Missing note ID" },
+        { status: 400 }
+      );
+    }
     const note: AddDataRequest = formatNote(data);
     const collection = await getMyCollection();
 

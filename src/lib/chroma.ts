@@ -34,13 +34,29 @@ if (!globalForChroma._chromaClient) {
 export const chromaClient = globalForChroma._chromaClient;
 
 // --- Lazy Singleton: Collection ---
+let collectionPromise: Promise<Collection> | null = null;
+
 export async function getMyCollection() {
-  if (!globalForChroma._myCollection) {
-    globalForChroma._myCollection = await chromaClient.getOrCreateCollection({
-      name: "notes",
-      embeddingFunction: embedder,
-    });
+  if (globalForChroma._myCollection) {
+    return globalForChroma._myCollection;
   }
-  return globalForChroma._myCollection;
+
+  if (!collectionPromise) {
+    collectionPromise = (async () => {
+      try {
+        const collection = await chromaClient.getOrCreateCollection({
+          name: "notes",
+          embeddingFunction: embedder,
+        });
+        globalForChroma._myCollection = collection;
+        return collection;
+      } catch (error) {
+        collectionPromise = null; // Reset promise on failure
+        throw error;
+      }
+    })();
+  }
+
+  return collectionPromise;
 }
 
