@@ -1,8 +1,9 @@
 ## 🚀 AI Notes: Smart Note-Taking with AI-Powered Insights
 
-![A detailed screenshot of the AI Notes application interface](assets/app-screenshot.png)
 
 > **Status:** **In Development** (or **Beta**, **v1.0.0**) | **License:** MIT
+
+![A detailed screenshot of the AI Notes application interface](./Screenshot-2025-12-13_19:17:21.png)
 
 An intelligent, full-stack note-taking application designed to not only help you capture your thoughts but also to understand and interact with them using cutting-edge AI. Leverage semantic search and large language models (LLMs) to automatically organize your notes and answer complex questions based on your personal knowledge base.
 
@@ -117,3 +118,4 @@ Contributions are what make the open-source community such an amazing place to l
 Distributed under the MIT License. See `LICENSE` for more information.
 
 Project Link: [https://memocho.geniuspace.in/notes](https://memocho.geniuspace.in/notes)
+
