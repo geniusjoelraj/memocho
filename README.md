@@ -1,1 +1,0 @@
-live: <a href="memocho.geniuspace.in">memocho.geniuspace.in</a>
