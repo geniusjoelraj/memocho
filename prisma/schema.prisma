@@ -13,5 +13,6 @@ model Note {
   title     String
   tags      String[]
   content   String
+  user_id   String
   createdAt DateTime @default(now())
 }

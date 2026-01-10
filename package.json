@@ -11,6 +11,8 @@
   "dependencies": {
     "@chroma-core/default-embed": "^0.1.8",
     "@chroma-core/google-gemini": "^0.1.7",
+    "@clerk/nextjs": "^6.36.7",
+    "@clerk/themes": "^2.4.47",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@google/genai": "^1.29.0",
@@ -26,7 +28,7 @@
     "@radix-ui/react-navigation-menu": "^1.2.14",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
-    "Masonry": "link:@mui/lab/Masonry",
+    "Masonry": "@mui/lab/Masonry",
     "chromadb": "^3.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

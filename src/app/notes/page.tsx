@@ -31,16 +31,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { UserButton, useUser } from '@clerk/nextjs';
 
 export default function Notes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [reload, setReload] = useState(1);
   const [selected, setSelected] = useState(0);
   const [generatingIds, setGeneratingIds] = useState<Set<number>>(new Set());
+  const { user } = useUser()
 
   // useEffect(() => {
   //   const lenis = new Lenis();
-  //   function raf(time: any) {
+  //   function raf(time: any) {=
   //     lenis.raf(time);
   //     requestAnimationFrame(raf);
   //   }
@@ -48,7 +50,7 @@ export default function Notes() {
   // }, [])
 
   useEffect(() => {
-    fetch("/api/notes")
+    fetch("/api/notes/?userId=" + user?.id)
       .then((res) => res.json())
       .then((data) => {
         setNotes(data);
@@ -59,7 +61,7 @@ export default function Notes() {
           }
         });
       });
-  }, [reload]);
+  }, [reload, user]);
 
   async function create_note(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -67,10 +69,10 @@ export default function Notes() {
     const formData = new FormData(form);
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
-
+    const userId = user?.id
     const res = await fetch(`/api/notes`, {
       method: "POST",
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({ title, content, userId }),
       headers: { "Content-Type": "application/json" }
     });
 
@@ -156,7 +158,8 @@ export default function Notes() {
   }
   return (
     <>
-      <h1 className='text-3xl mb-10'>My Notes</h1>
+      <h1 className='text-2xl mb-10'>Hi {user?.username}
+      </h1>
       <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4 }} spacing={2}>
         <Card
           onClick={() => setSelected(0)}

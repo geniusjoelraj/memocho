@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma.ts";
 import { get_tags } from "../gen_tags.ts";
-
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   let idParams = searchParams.get("id") || "";
+  let userId = searchParams.get("userId") || "";
+  console.log(userId);
+
   const id = Number(idParams)
 
   console.log(searchParams);
@@ -14,9 +16,10 @@ export async function GET(req: Request) {
     return NextResponse.json(note);
   }
 
-  const notes = await prisma.note.findMany();
+  const notes = await prisma.note.findMany({ where: { user_id: userId } });
   return NextResponse.json(notes);
 }
+
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -29,7 +32,8 @@ export async function POST(req: Request) {
     data: {
       id: body.id,
       title: body.title,
-      content: body.content || ""
+      content: body.content || "",
+      user_id: body.userId
     }
   })
   return NextResponse.json({ note }, { status: 201 })
