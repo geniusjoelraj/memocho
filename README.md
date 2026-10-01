@@ -1,7 +1,7 @@
-## 🚀 AI Notes: Smart Note-Taking with AI-Powered Insights
+## 🚀 Memocho: Smart Note-Taking with AI-Powered Insights
 
 
-> **Status:** **In Development** (or **Beta**, **v1.0.0**) | **License:** MIT
+> **Status:** **Beta** | **License:** MIT
 
 ![A detailed screenshot of the AI Notes application interface](./Screenshot-2025-12-13_19:17:21.png)
 
@@ -19,11 +19,13 @@ An intelligent, full-stack note-taking application designed to not only help you
 * **🤖 AI Tag Generation:** Automatically analyze note content and generate relevant, high-quality tags for efficient categorization and searchability.
 * **❓ Ask AI (Q&A over Notes):** A powerful feature allowing users to ask natural language questions (e.g., "What were the key takeaways from the meeting on Monday?") directly against their entire collection of notes. The AI provides context-aware answers.
 
+#### Implemented Features
+* **🔒 User Authentication:** Secure sign-up/login via **Clerk** to ensure notes are private and user-specific.
+
 #### Future/Planned Features
 * **📈 Contextual Note Summaries:** A button to generate a concise summary of the current note.
 * **🔗 Inter-Note Linking & Graph View:** Identify and suggest links between related notes, offering a visual graph representation of your knowledge base.
 * **🎙️ Voice-to-Text Transcription (Future):** Integrate a feature to quickly capture spoken thoughts and convert them directly into notes.
-* **🔒 User Authentication:** Secure sign-up/login to ensure notes are private and user-specific.
 
 ---
 
@@ -33,11 +35,12 @@ This project is built using a modern and powerful stack for full-stack AI develo
 
 | Component | Technology | Role |
 | :--- | :--- | :--- |
-| **Frontend/Backend** | **Next.js (App Router)** | Full-stack framework for rendering and API routes. |
-| **Styling** | **Tailwind CSS & Shadcn UI** | Utility-first CSS framework and a beautiful component library. |
-| **Database** | **Prisma** (with PostgreSQL/SQLite) | ORM for secure and scalable data persistence (Note CRUD, User data). |
-| **Vector Database** | **ChromaDB** | Stores note embeddings for semantic search and AI context retrieval. |
-| **AI/LLMs** | (Specify your provider: **OpenAI**, **Claude**, etc.) | Powers the tag generation and the Q&A system. |
+| **Frontend/Backend** | **Next.js 16 (App Router)** | Full-stack framework for rendering and API routes. |
+| **Styling** | **Tailwind CSS 4 & Shadcn UI** | Utility-first CSS framework and a beautiful component library. |
+| **Authentication** | **Clerk** | Secure user authentication and session management. |
+| **Database** | **Prisma** (with PostgreSQL) | ORM for secure and scalable data persistence (Note CRUD, User data). |
+| **Vector Database** | **ChromaDB Cloud** | Stores note embeddings for semantic search and AI context retrieval. |
+| **AI/LLMs** | **Google Gemini** | Powers the tag generation, embeddings, and the Q&A system. |
 
 ---
 
@@ -48,14 +51,16 @@ Follow these steps to get your local copy up and running.
 #### Prerequisites
 * Node.js (v18+)
 * pnpm (or npm/yarn)
-* An API Key for your chosen LLM (e.g., OpenAI API Key)
+* A Google Gemini API Key
+* A Clerk account (for authentication)
+* A ChromaDB Cloud account
 
 #### Installation
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/yourusername/ai-notes-app.git](https://github.com/yourusername/ai-notes-app.git)
-    cd ai-notes-app
+    git clone https://github.com/geniusjoelraj/memocho.git
+    cd memocho
     ```
 
 2.  **Install dependencies:**
@@ -64,17 +69,24 @@ Follow these steps to get your local copy up and running.
     ```
 
 3.  **Set up Environment Variables:**
-    Create a file named `.env.local` in the root and add the following:
+    Create a `.env` file in the root and add the following:
     ```
     # Database Configuration
-    DATABASE_URL="file:./dev.db"  # Use your actual DB URL for production
+    DATABASE_URL="your_postgresql_connection_string"
 
-    # LLM Provider Configuration
-    GEMINI_API_KEY="GEMINI_API_KEY"
-    # ... other provider keys
-    
-    # ChromaDB Configuration (if self-hosted)
-    CHROMADB_URL="http://localhost:8000"
+    # Google Gemini
+    GEMINI_API_KEY="your_gemini_api_key"
+
+    # ChromaDB Cloud
+    CHROMA_API_KEY="your_chroma_api_key"
+    CHROMA_TENANT="your_chroma_tenant_id"
+    CHROMA_DATABASE="notes"
+    ```
+
+    Create a `.env.local` file and add Clerk keys:
+    ```
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your_clerk_publishable_key"
+    CLERK_SECRET_KEY="your_clerk_secret_key"
     ```
 
 4.  **Database Migration (Prisma):**

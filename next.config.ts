@@ -1,7 +1,6 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // ... other configurations you may have
+import type { NextConfig } from 'next';
 
+const nextConfig: NextConfig = {
   // IMPORTANT: Externalize Node.js native packages.
   // This tells Next.js (and Vercel's build process) to NOT bundle these,
   // but to resolve them at runtime from the node_modules folder.
@@ -27,4 +26,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

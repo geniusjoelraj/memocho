@@ -11,11 +11,17 @@ export async function get_tags(note: Note, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.5-flash-lite",
         contents: `title: ${note.title}\ncontent: ${note.content}`,
         config: {
-          systemInstruction: "You are to generate tags for the note you get. the tags must contain only or two words, try to keep it a word. There should be 3-4 tags generated. give tags as an array",
+          systemInstruction: "Generate 3 to 4 tags for this note. Each tag should be 1-2 words max.",
           responseMimeType: 'application/json',
+          responseSchema: {
+            type: "ARRAY",
+            items: {
+              type: "STRING"
+            }
+          }
         },
       });
       if (!response.text) {

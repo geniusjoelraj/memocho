@@ -29,7 +29,11 @@ export const genAI = globalForChroma._genAI;
 
 // --- Singleton: Chroma Cloud Client ---
 if (!globalForChroma._chromaClient) {
-  globalForChroma._chromaClient = new CloudClient();
+  globalForChroma._chromaClient = new CloudClient({
+    apiKey: process.env.CHROMA_API_KEY!,
+    tenant: process.env.CHROMA_TENANT!,
+    database: process.env.CHROMA_DATABASE!,
+  });
 }
 export const chromaClient = globalForChroma._chromaClient;
 

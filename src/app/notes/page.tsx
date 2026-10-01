@@ -35,32 +35,38 @@ import { UserButton, useUser } from '@clerk/nextjs';
 
 export default function Notes() {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
   const [reload, setReload] = useState(1);
   const [selected, setSelected] = useState(0);
   const [generatingIds, setGeneratingIds] = useState<Set<number>>(new Set());
   const { user } = useUser()
 
-  // useEffect(() => {
-  //   const lenis = new Lenis();
-  //   function raf(time: any) {=
-  //     lenis.raf(time);
-  //     requestAnimationFrame(raf);
-  //   }
-  //   requestAnimationFrame(raf);
-  // }, [])
-
   useEffect(() => {
-    fetch("/api/notes/?userId=" + user?.id)
-      .then((res) => res.json())
+    if (!user?.id) return;
+    setLoading(true);
+    fetch("/api/notes/?userId=" + user.id)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json();
+      })
       .then((data) => {
-        setNotes(data);
-        // Trigger generation for notes without tags
-        data.forEach((note: Note) => {
-          if ((!note.tags || note.tags.length === 0) && !generatingIds.has(note.id)) {
-            edit_tags(note);
-          }
-        });
-      });
+        if (Array.isArray(data)) {
+          setNotes(data);
+          // Trigger generation for notes without tags
+          data.forEach((note: Note) => {
+            if (!note.tags || note.tags.length === 0) {
+              edit_tags(note);
+            }
+          });
+        } else {
+          setNotes([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setNotes([]);
+      })
+      .finally(() => setLoading(false));
   }, [reload, user]);
 
   async function create_note(e: React.FormEvent<HTMLFormElement>) {
@@ -76,15 +82,19 @@ export default function Notes() {
       headers: { "Content-Type": "application/json" }
     });
 
-    if (res.ok) toast.success("Note created successfully");
+    if (res.ok) {
+      toast.success("Note created successfully");
+      const data = await res.json();
+      setNotes(prev => [data.note, ...prev]);
+      edit_tags(data.note);
+    }
     form.reset();
-    // const note = await res.json();
-    setReload(prev => prev + 1);
-    // edit_tags(note);
-    // setReload(prev => prev + 1);
   }
 
   async function delete_note(note: Note) {
+    // Optimistically remove from UI
+    setNotes(prev => prev.filter(n => n.id !== note.id));
+    
     // Delete immediately from DB
     await fetch(`/api/notes?id=${note.id}`, { method: "DELETE" });
 
@@ -93,26 +103,26 @@ export default function Notes() {
       action: {
         label: "Undo",
         onClick: async () => {
-          await fetch(`/api/notes`, {
+          const res = await fetch(`/api/notes`, {
             method: "POST",
             body: JSON.stringify({
               id: note.id,
               title: note.title,
               content: note.content,
-              tags: note.tags
+              tags: note.tags,
+              userId: note.user_id
             }),
             headers: { "Content-Type": "application/json" }
           });
-          setReload(prev => prev + 1);
+          if (res.ok) {
+            const data = await res.json();
+            setNotes(prev => [data.note, ...prev]);
+          }
           toast.success("Note restored");
         }
       },
       duration: 4000 // auto dismiss after 4s
     });
-
-    // Optionally delay reload slightly so deletion feels smoother
-    await new Promise(resolve => setTimeout(resolve, 400));
-    setReload(prev => prev + 1);
   }
 
   async function edit_note(e: React.FormEvent<HTMLFormElement>) {
@@ -122,12 +132,17 @@ export default function Notes() {
     const title = formData.get("title") as string;
     const id = formData.get("id") as string;
     const content = formData.get("content") as string;
-    await fetch(`/api/notes?id=${id}`, {
+    const res = await fetch(`/api/notes?id=${id}`, {
       method: "PUT",
       body: JSON.stringify({ title: title, content: content }),
       headers: { "Content-Type": "application/json" }
     })
-    setReload(prev => prev + 1);
+    
+    if (res.ok) {
+      const updatedNote = await res.json();
+      setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+    }
+    
     document.querySelector<HTMLButtonElement>('[data-slot="dialog-close"]')?.click();
     toast.success("Note edited successfully");
   }
@@ -136,18 +151,21 @@ export default function Notes() {
     if (generatingIds.has(note.id)) return;
     setGeneratingIds(prev => new Set(prev).add(note.id));
     try {
-      await fetch("/api/notes", {
+      const res = await fetch("/api/notes", {
         method: "PATCH",
         body: JSON.stringify(note),
         headers: { "Content-Type": "application/json" }
-      })
+      });
+      if (res.ok) {
+        const updatedNote = await res.json();
+        setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+      }
       await fetch("/api/add", {
         method: "POST",
         body: JSON.stringify(note),
         headers: { "Content-Type": "application/json" }
       })
       toast.success("tags generated");
-      setReload(prev => prev + 1);
     } finally {
       setGeneratingIds(prev => {
         const next = new Set(prev);
@@ -174,7 +192,7 @@ export default function Notes() {
               required
             />
             <textarea
-              className='placeholder:text-gray-400 outline-0 h-20 w-full'
+              className='placeholder:text-gray-400 outline-0 h-20 w-full bg-transparent'
               name="content"
               placeholder="Create a new note..."
             />
@@ -187,7 +205,14 @@ export default function Notes() {
           </form>
         </Card>
         {
-          (notes.length != 0) ?
+          loading ?
+            <>
+              <Skeleton className='h-[300px] w-full' />
+              <Skeleton className='h-[200px] w-full' />
+              <Skeleton className='h-[250px] w-full' />
+              <Skeleton className='h-[250px] w-full' />
+            </>
+          : (notes.length != 0) ?
             [...notes]
               .sort((a, b) => b.id - a.id)
               .map((note) => (
@@ -302,17 +327,7 @@ export default function Notes() {
                     : <></>}
                 </Card>
               )) :
-            <>
-              <Skeleton className='h-[300px] w-full' />
-              <Skeleton className='h-[200px] w-full' />
-              <Skeleton className='h-[250px] w-full' />
-              <Skeleton className='h-[250px] w-full' />
-              <Skeleton className='h-[250px] w-full' />
-              <Skeleton className='h-[350px] w-full' />
-              <Skeleton className='h-[250px] w-full' />
-              <Skeleton className='h-[250px] w-full' />
-              <Skeleton className='h-[250px] w-full' />
-            </>
+            <p className='text-muted-foreground p-4'>No notes yet. Create one above!</p>
         }
       </Masonry>
     </>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../lib/prisma.ts";
-import { get_tags } from "../gen_tags.ts";
+import { prisma } from "../../../lib/prisma";
+import { get_tags } from "../gen_tags";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   let idParams = searchParams.get("id") || "";
@@ -11,13 +11,18 @@ export async function GET(req: Request) {
 
   console.log(searchParams);
 
-  if (id) {
-    const note = await prisma.note.findUnique({ where: { id } })
-    return NextResponse.json(note);
-  }
+  try {
+    if (id) {
+      const note = await prisma.note.findUnique({ where: { id } })
+      return NextResponse.json(note);
+    }
 
-  const notes = await prisma.note.findMany({ where: { user_id: userId } });
-  return NextResponse.json(notes);
+    const notes = await prisma.note.findMany({ where: { user_id: userId } });
+    return NextResponse.json(notes);
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return NextResponse.json({ error: "Could not connect to database" }, { status: 500 });
+  }
 }
 
 
@@ -28,15 +33,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Title is required", status: 400 })
   }
 
-  const note = await prisma.note.create({
-    data: {
-      id: body.id,
-      title: body.title,
-      content: body.content || "",
-      user_id: body.userId
-    }
-  })
-  return NextResponse.json({ note }, { status: 201 })
+  try {
+    const note = await prisma.note.create({
+      data: {
+        id: body.id,
+        title: body.title,
+        content: body.content || "",
+        user_id: body.userId
+      }
+    })
+    return NextResponse.json({ note }, { status: 201 })
+  } catch (error) {
+    console.error("Database error while creating note:", error);
+    return NextResponse.json({ error: "Could not create note" }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: Request) {
