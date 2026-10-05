@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     // 3) Call Gemini properly and serialize only the text
     const result = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt
     });
     const answer = result.text;
