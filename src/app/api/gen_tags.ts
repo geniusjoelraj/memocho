@@ -1,5 +1,5 @@
 'use server'
-import { Note } from "@/generated/prisma/client";
+import { Note } from "@prisma/client";
 import { GoogleGenAI } from "@google/genai";
 
 

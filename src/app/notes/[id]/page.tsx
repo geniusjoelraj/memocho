@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import type { Note } from "@/generated/prisma/client";
+import type { Note } from "@prisma/client";
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card } from '@/components/ui/card';

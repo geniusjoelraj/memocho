@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Metadata } from "chromadb";
-import { Note } from "@/generated/prisma/client";
+import { Note } from "@prisma/client";
 import { getMyCollection } from "@/lib/chroma";
 
 interface AddDataRequest {
