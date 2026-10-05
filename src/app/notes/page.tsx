@@ -181,20 +181,21 @@ export default function Notes() {
       <Masonry columns={{ xs: 1, sm: 2, md: 3, lg: 4 }} spacing={2}>
         <Card
           onClick={() => setSelected(0)}
-          className='p-3'
+          className='p-4'
         >
-          <form onSubmit={create_note} >
-            <input
-              type="text"
+          <form onSubmit={create_note} className="flex flex-col gap-3">
+            <textarea
               name="title"
               placeholder="New note"
-              className="text-2xl font-bold placeholder:text-gray-300 outline-0 w-full bg-transparent"
+              className="text-2xl font-bold placeholder:text-gray-300 outline-0 w-full bg-transparent resize-none [field-sizing:content]"
               required
+              rows={1}
             />
             <textarea
-              className='placeholder:text-gray-400 outline-0 h-20 w-full bg-transparent'
+              className='placeholder:text-gray-400 outline-0 w-full bg-transparent resize-none [field-sizing:content]'
               name="content"
               placeholder="Create a new note..."
+              rows={3}
             />
             <Button
               variant="default"
@@ -216,9 +217,9 @@ export default function Notes() {
             [...notes]
               .sort((a, b) => b.id - a.id)
               .map((note) => (
-                <Card key={note.id} className='p-3' onClick={() => setSelected(note.id)}>
-                  <p className='text-2xl font-bold -mb-4'>{note.title}</p>
-                  <p className='w-full -mb-4'>{note.content}</p>
+                <Card key={note.id} className='p-4 flex flex-col gap-4' onClick={() => setSelected(note.id)}>
+                  <p className='text-2xl font-bold break-words'>{note.title}</p>
+                  <p className='w-full break-words whitespace-pre-wrap text-muted-foreground'>{note.content}</p>
                   <div className='flex gap-1 flex-wrap'>
                     {selected == note.id ?
                       <Badge variant='outline' className='cursor-pointer'
