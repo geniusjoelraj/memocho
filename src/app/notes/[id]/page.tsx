@@ -93,7 +93,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                 <DialogHeader>
                   <DialogTitle>Edit Note</DialogTitle>
                   <DialogDescription>
-                    Make changes to your note here. Click save when you're done.
+                    Make changes to your note here. Click save when you&apos;re done.
                   </DialogDescription>
                 </DialogHeader>
 

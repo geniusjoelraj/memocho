@@ -3,8 +3,8 @@ import { prisma } from "../../../lib/prisma";
 import { get_tags } from "../gen_tags";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-  let idParams = searchParams.get("id") || "";
-  let userId = searchParams.get("userId") || "";
+  const idParams = searchParams.get("id") || "";
+  const userId = searchParams.get("userId") || "";
   console.log(userId);
 
   const id = Number(idParams)
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   const { searchParams } = new URL(req.url)
-  let idParams = searchParams.get("id") || "";
+  const idParams = searchParams.get("id") || "";
   const id = Number(idParams)
   try {
     await prisma.note.delete({ where: { id } });
@@ -63,7 +63,7 @@ export async function DELETE(req: Request) {
 
 export async function PUT(req: Request) {
   const { searchParams } = new URL(req.url)
-  let idParams = searchParams.get("id") || "";
+  const idParams = searchParams.get("id") || "";
   const id = Number(idParams)
 
   if (isNaN(id)) {

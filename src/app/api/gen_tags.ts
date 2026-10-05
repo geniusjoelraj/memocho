@@ -29,9 +29,10 @@ export async function get_tags(note: Note, retries = 3) {
       }
 
       return JSON.parse(response.text);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check for 503 Service Unavailable or other transient errors if needed
-      if (error.status === 503 && i < retries - 1) {
+      const err = error as { status?: number };
+      if (err.status === 503 && i < retries - 1) {
         // Exponential backoff: 1s, 2s, 4s...
         await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
         continue;
