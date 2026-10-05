@@ -75,7 +75,7 @@ export default function RootLayout({
               </SignedIn>
               <SignedOut>
                 <div className="flex flex-col justify-center items-center w-full mt-20 gap-6">
-                  <SignIn />
+                  <SignIn routing="hash" />
                   <div className="text-center text-sm text-muted-foreground border border-border rounded-lg px-6 py-4 max-w-xs">
                     <p className="font-semibold text-foreground mb-1">Demo Credentials</p>
                     <p>Username: <code className="font-mono bg-muted px-1 py-0.5 rounded text-foreground">demo</code></p>
