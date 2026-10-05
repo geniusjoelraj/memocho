@@ -1,7 +1,7 @@
 'use client'
 import { Masonry } from '@mui/lab';
 import { useEffect, useState } from 'react';
-import { Note } from '@/generated/prisma/browser';
+import type { Note } from '@prisma/client';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button"
 import { Card } from '@/components/ui/card';
