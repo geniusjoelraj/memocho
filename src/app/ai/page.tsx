@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChangeEvent, useState } from 'react'
 
+import { toast } from "sonner";
+
 
 export default function AI() {
   const [question, setQuestion] = useState("");
@@ -14,23 +16,33 @@ export default function AI() {
 
   async function get_answer(query: string) {
     setGenerating(true);
-    const res = await fetch("/api/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
-    });
-
-    const text = await res.text(); // read the raw response
-    console.log("Raw response:", text);
-
     try {
-      const data = JSON.parse(text); // parse manually
-      setGenerating(false);
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        let msg = "Something went wrong.";
+        try {
+          const parsed = JSON.parse(data.error);
+          msg = parsed?.error?.message || data.error;
+        } catch {
+          msg = data.error || msg;
+        }
+        toast.error(msg);
+        setGenerating(false);
+        return;
+      }
+
       setAnswer(data.answer);
-    } catch (err) {
-      console.error("Failed to parse JSON:", err);
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
       setGenerating(false);
-      setAnswer("⚠️ Server returned invalid JSON. Check console logs.");
     }
   }
 
